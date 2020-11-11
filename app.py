@@ -14,13 +14,13 @@ menu()
 res = int(input('SELECCIONE OPCIÓN: '))
 
 if (res == 1):
-    print(integerToBinary(2))
+    print(integerToBinary(2, 8))
 elif (res == 2):
-    print(binaryToInteger('100010010101'))
+    print(binaryToInteger('111110', 6))
 elif( res == 3):
-    print(decimalToBinary(1.125))
+    print(decimalToBinary(11.25e-1, 10)) 
 elif (res == 4):
-    print(binaryToDecimal('1.001'))
+    print(binaryToDecimal('1.001', 10))
 elif (res == 5):
     sign, exponent, mantisa, m = floatToBinary(0.125, 'single')
     print("sign: ", sign)
@@ -29,7 +29,7 @@ elif (res == 5):
     print("m: ", m)
 
 elif (res == 6):
-    print(binaryToFloat('0', '10000101', '010101001', 'single'))
+    print(binaryToFloat('1', '10000001', '010000', 'single'))
 
 
 

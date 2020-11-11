@@ -63,11 +63,11 @@ def add1(binary):
 """
 This function makes all the process to convert a negative number to binary
 """
-def negativeIntToBinary(num):
-    return fillBits(add1(swap(binaryProcess(num))), 8, True)
+def negativeIntToBinary(num, bits):
+    return fillBits(add1(swap(binaryProcess(num))), bits, True)
 
-def positiveIntToBinary(num):
-    return fillBits(binaryProcess(num), 8, False)
+def positiveIntToBinary(num, bits):
+    return fillBits(binaryProcess(num), bits, False)
 
 """
 This function makes the process to fill the bits 
@@ -118,6 +118,8 @@ def floatingToBinary(floating, presition):
         presition_number = 23
     elif presition == 'double':
         presition_number = 52
+    else: 
+        presition_number = presition
 
     for i in range (presition_number):
         floating *= 2
@@ -156,7 +158,6 @@ def normalizedNotation(binary_integer, binary_floating):
 
     binary_float_number = strint +  strfloat
 
-    print("Desde la función: exponent: ", exponent)
     return binary_float_number, exponent
 
 def floatSign(num):
@@ -192,11 +193,13 @@ def definingPresitionValues(presition):
     if presition == 'single':
         bias = 127
         mantisa_bits = 23
+        exponent_bits = 8
     elif presition == 'double':
         bias = 1023
         mantisa_bits = 52
+        exponent_bits = 11
 
-    return bias, mantisa_bits
+    return bias, mantisa_bits, exponent_bits
 
 def stringToBinary(string):
     binary = [int(char) for char in string]
@@ -230,14 +233,6 @@ def convertFraction(mantisa):
 
     return num
 
-def exponentToDecimal(exponent):
-
-    exp = stringToBinary(exponent)
-    if (exp[0] == 1):
-        exp.insert(0, 0)
-
-    return binaryToInteger(exp)
-
 def binaryDecimalPartToDecimal(decimal):
     string = str(decimal)
 
@@ -262,42 +257,63 @@ def binaryDecimalPartToDecimal(decimal):
 
 #-------------------------------------------------------------------------------------
 
-def integerToBinary(num):
+def integerToBinary(num, bits):
 
     if (num >= 0):
-        return binaryToString(positiveIntToBinary(num))
+        return binaryToString(positiveIntToBinary(num, bits))
 
     if (num < 0):
-        return binaryToString(negativeIntToBinary(abs(num)))
+        return binaryToString(negativeIntToBinary(abs(num), bits))
 
-def binaryToInteger(num):
+def binaryToInteger(num, bits):
 
     while (validate(num) == False):
         num = input("Digite numero binario: ")
     
+    while (len(num) > bits):
+        print("len(num): ", len(num), "bits: ", bits, "num: ", num)
+        num = input("Hay mayor numero de bits de los requeridos. Digite nuevamente: ")
 
     binary = [int(char) for char in num] 
 
-    if binary[0] == 0:
+    if len(binary) == bits:
+        if binary[0] == 0:
+            return positiveBinaryToInteger(binary)
+
+        elif binary[0] == 1:
+            return -negativeBinaryToInteger(binary)
+    else:
         return positiveBinaryToInteger(binary)
 
-    elif binary[0] == 1:
-        return negativeBinaryToInteger(binary)
-
-def decimalToBinary(num):
+def decimalToBinary(num, bits):
 
     floating, integer = math.modf(num)
 
     if (num > 0):
         first = binaryProcess(int(integer))
     elif (num < 0):
-        first = add1(swap(binaryProcess(abs(int(integer)))))
+        first = -add1(swap(binaryProcess(abs(int(integer)))))
     
-    decimalBinario, m = floatingToBinary(abs(round(floating, 10)), 'single')
+    decimalBinario, m = floatingToBinary(abs(round(floating, 10)), bits - len(binaryToString(first)))
 
-    return binaryToString(first)+'.'+ binaryToString(decimalBinario)
+    binary = binaryToString(first)+'.'+ binaryToString(decimalBinario)
+    result = binary
 
-def binaryToDecimal(num):
+    if (len(binary) + 1 < bits):
+        result = ''
+        diff = bits - len(binary) + 1
+        for i in range (diff):
+            result += '0'
+        result += binary
+    
+    if len(binary) + 1 > bits:
+        result = ''
+        for i in range (bits + 1): 
+            result += binary[i]
+
+    return result
+
+def binaryToDecimal(num, bits):
     flag = True
 
     integer = ""
@@ -312,8 +328,8 @@ def binaryToDecimal(num):
             if i != '.':
                 decimal +=i
 
-    first = binaryToInteger(integer)
     decimalBinario = binaryDecimalPartToDecimal(decimal)
+    first = binaryToInteger(integer, bits - len(decimalBinario))
 
     return str(first) +'.'+ decimalBinario
 
@@ -329,44 +345,45 @@ def floatToBinary(num, presition):
     binary_integer = binaryProcess(abs(int(integer)))
     binary_floating, periodic = floatingToBinary(abs(round(floating, 60)), presition)
 
-    """
-    periodicfloat = floating
-    while periodic == True:
-        periodicfloat += 0.00000000000000000000000001
-        binary_floating, periodic = floatingToBinary(periodicfloat, presition)
-        print("periodic float: ", periodicfloat)
-
-    print("periodic float: ", periodicfloat)
-    """
     number, exp = normalizedNotation(binary_integer, binary_floating)
 
-    bias, bits = definingPresitionValues(presition)
+    bias, bitsf, bitse = definingPresitionValues(presition)
 
     exponent = exp + bias
 
-    print("Exponent afuera: ", exponent)
-
     sign = floatSign(num)
     binary_exponent = binaryProcess(exponent)
+
+    if len(binaryToString(binary_exponent)) < bitse:
+        exponent_result = ''
+        diff = bitse - len(binaryToString(binary_exponent))
+        for i in range (diff):
+            exponent_result += '0'
+        exponent_result += binaryToString(binary_exponent)
     
-    print("Despues exponent: ", binary_exponent)
-    mantisa = normalizedMantisa(number, bits)
+    mantisa = normalizedMantisa(number, bitsf)
 
     if periodic == True:
         message = "Como el decimal es periodico, esta es una aproximación"
     else: 
         message = ''
 
-    return sign, binaryToString(binary_exponent), binaryToString(mantisa), message
+    return sign, binaryToString(exponent_result), binaryToString(mantisa), message
 
 def binaryToFloat(sign, exponent, mantisa, presition):
-    bias, bits = definingPresitionValues(presition)
+    bias, bitf, bitse = definingPresitionValues(presition)
+
+    while (len(exponent) != bitse):
+        print("Error, digite de manera correcta el exponente. Debe tener ", bitse, " bits")
+    while (len(sign) != 1):
+        print("Error, digite de manera correcta el sgno. Debe tener 1 bit")
+
 
     fraction = convertFraction(stringToBinary(mantisa))
 
-    print("Exponent en decimal: ", binaryToInteger(exponent))
+    print("Exponent en decimal: ", positiveBinaryToInteger(stringToBinary(exponent)))
     print("bias: ", bias)
-    exp = exponentToDecimal(exponent) - bias
+    exp = positiveBinaryToInteger(stringToBinary(exponent)) - bias 
 
 
     print("Fraction: ", fraction)
