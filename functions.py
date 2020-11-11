@@ -3,8 +3,10 @@ import math
 def menu():
     print("Seleccione 1 para convertir numeros enteros a numeros binarios")
     print("Seleccione 2 para convertir numeros binarios a numeros enteros")
-    print("Seleccione 3 para convertir numeros flotantes a binarios")
-    print("Seleccione 4 para convertir numeros binarios a flotantes")
+    print("Seleccione 3 para convertir numeros decimales a numeros binarios")
+    print("Seleccione 4 para convertir numeros binarios a numeros decimales")
+    print("Seleccione 5 para convertir numeros flotantes a binarios")
+    print("Seleccione 6 para convertir numeros binarios a flotantes")
 
 """
 This function converts a int number to a binary
@@ -98,15 +100,15 @@ def validate (num):
 
     return True
     
-def positiveBinaryToDecimal(binary):
+def positiveBinaryToInteger(binary):
     decimal = 0
     binary.reverse()
     for i in range (len(binary)):
         decimal += int(binary[i]) * 2**i
     return decimal
 
-def negativeBinaryToDecimal(num):
-    return positiveBinaryToDecimal(add1(swap(num)))
+def negativeBinaryToInteger(num):
+    return positiveBinaryToInteger(add1(swap(num)))
 
 def floatingToBinary(floating, presition):
     binary_float = []
@@ -132,6 +134,7 @@ def floatingToBinary(floating, presition):
 
         floating -= int(floating)
         floating = round(floating, 10)
+    periodic_binary = True
 
     return binary_float, periodic_binary
 
@@ -153,6 +156,7 @@ def normalizedNotation(binary_integer, binary_floating):
 
     binary_float_number = strint +  strfloat
 
+    print("Desde la función: exponent: ", exponent)
     return binary_float_number, exponent
 
 def floatSign(num):
@@ -232,10 +236,33 @@ def exponentToDecimal(exponent):
     if (exp[0] == 1):
         exp.insert(0, 0)
 
-    return binaryToDecimal(exp)
+    return binaryToInteger(exp)
+
+def binaryDecimalPartToDecimal(decimal):
+    string = str(decimal)
+
+    decimalBinario = 0
+
+    exponent = -1
+    for i in string:
+        decimalBinario += int(i)*(2**exponent)
+        exponent -= 1
+    
+    DecimalBinario = str(decimalBinario)
+    final = ""
+    flag = False
+    for i in DecimalBinario:
+        if (i == '.'):
+            flag = True
+        
+        if (flag):
+            if i != '.':
+                final += i
+    return final
+
 #-------------------------------------------------------------------------------------
 
-def decimalToBinary(num):
+def integerToBinary(num):
 
     if (num >= 0):
         return binaryToString(positiveIntToBinary(num))
@@ -243,7 +270,7 @@ def decimalToBinary(num):
     if (num < 0):
         return binaryToString(negativeIntToBinary(abs(num)))
 
-def binaryToDecimal(num):
+def binaryToInteger(num):
 
     while (validate(num) == False):
         num = input("Digite numero binario: ")
@@ -252,10 +279,43 @@ def binaryToDecimal(num):
     binary = [int(char) for char in num] 
 
     if binary[0] == 0:
-        return positiveBinaryToDecimal(binary)
+        return positiveBinaryToInteger(binary)
 
     elif binary[0] == 1:
-        return negativeBinaryToDecimal(binary)
+        return negativeBinaryToInteger(binary)
+
+def decimalToBinary(num):
+
+    floating, integer = math.modf(num)
+
+    if (num > 0):
+        first = binaryProcess(int(integer))
+    elif (num < 0):
+        first = add1(swap(binaryProcess(abs(int(integer)))))
+    
+    decimalBinario, m = floatingToBinary(abs(round(floating, 10)), 'single')
+
+    return binaryToString(first)+'.'+ binaryToString(decimalBinario)
+
+def binaryToDecimal(num):
+    flag = True
+
+    integer = ""
+    decimal = ""
+    for i in num: 
+        if i == '.':
+            flag = False
+
+        if (flag):
+            integer += i
+        else:
+            if i != '.':
+                decimal +=i
+
+    first = binaryToInteger(integer)
+    decimalBinario = binaryDecimalPartToDecimal(decimal)
+
+    return str(first) +'.'+ decimalBinario
 
 def floatToBinary(num, presition):    
     """
@@ -265,18 +325,31 @@ def floatToBinary(num, presition):
 
     floating, integer = math.modf(num)
 
+    print(floating)
     binary_integer = binaryProcess(abs(int(integer)))
-    binary_floating, periodic = floatingToBinary(abs(round(floating, 10)), presition)
+    binary_floating, periodic = floatingToBinary(abs(round(floating, 60)), presition)
 
+    """
+    periodicfloat = floating
+    while periodic == True:
+        periodicfloat += 0.00000000000000000000000001
+        binary_floating, periodic = floatingToBinary(periodicfloat, presition)
+        print("periodic float: ", periodicfloat)
+
+    print("periodic float: ", periodicfloat)
+    """
     number, exp = normalizedNotation(binary_integer, binary_floating)
 
     bias, bits = definingPresitionValues(presition)
 
     exponent = exp + bias
 
+    print("Exponent afuera: ", exponent)
 
     sign = floatSign(num)
     binary_exponent = binaryProcess(exponent)
+    
+    print("Despues exponent: ", binary_exponent)
     mantisa = normalizedMantisa(number, bits)
 
     if periodic == True:
@@ -291,7 +364,7 @@ def binaryToFloat(sign, exponent, mantisa, presition):
 
     fraction = convertFraction(stringToBinary(mantisa))
 
-    print("Exponent en decimal: ", binaryToDecimal(exponent))
+    print("Exponent en decimal: ", binaryToInteger(exponent))
     print("bias: ", bias)
     exp = exponentToDecimal(exponent) - bias
 
