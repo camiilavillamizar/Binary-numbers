@@ -22,14 +22,14 @@ elif( res == 3):
 elif (res == 4):
     print(binaryToDecimal('1.001', 10))
 elif (res == 5):
-    sign, exponent, mantisa, m = floatToBinary(0.125, 'single')
+    sign, exponent, mantisa, m = floatToBinary(263.3, 'single')
     print("sign: ", sign)
     print("exponent: ", exponent)
     print("mantisa: ", mantisa)
     print("m: ", m)
 
 elif (res == 6):
-    print(binaryToFloat('1', '10000001', '010000', 'single'))
+    print(binaryToFloat('0', '10000111', '00000111010011001100110', 'single'))
 
 
 

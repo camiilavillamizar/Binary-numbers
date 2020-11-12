@@ -354,6 +354,7 @@ def floatToBinary(num, presition):
     sign = floatSign(num)
     binary_exponent = binaryProcess(exponent)
 
+    exponent_result = binary_exponent
     if len(binaryToString(binary_exponent)) < bitse:
         exponent_result = ''
         diff = bitse - len(binaryToString(binary_exponent))
